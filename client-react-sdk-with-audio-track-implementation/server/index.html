@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple WAV Player</title>
+    <style>
+        #audio-player {
+            width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        audio {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="audio-player">
+        <h2>Simple WAV Player</h2>
+        <audio controls id="audio-element">
+            <!-- file path -->
+            <source src="./uploads/recorded-audio.wav" type="audio/wav">
+        </audio>
+        <br>
+        <button id="play-button">Play</button>
+        <button id="pause-button">Pause</button>
+    </div>
+
+    <script>
+        const audioElement = document.getElementById('audio-element');
+        const playButton = document.getElementById('play-button');
+        const pauseButton = document.getElementById('pause-button');
+
+        playButton.addEventListener('click', function() {
+            audioElement.play();
+        });
+
+        pauseButton.addEventListener('click', function() {
+            audioElement.pause();
+        });
+    </script>
+</body>
+</html>
