@@ -1,36 +1,37 @@
 import time
 
 import jwt
+from app.api import deps
+from app.core import config, security
+from app.models import User
+from app.schemas.requests import RefreshTokenRequest, UserLoginRequest
+from app.schemas.responses import AccessTokenResponse
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api import deps
-from app.core import config, security
-from app.models import User
-from app.schemas.requests import RefreshTokenRequest
-from app.schemas.responses import AccessTokenResponse
-
 router = APIRouter()
 
 
-@router.post("/access-token", response_model=AccessTokenResponse)
+@router.post("/signin", response_model=AccessTokenResponse)
 async def login_access_token(
+    form_data: UserLoginRequest,
     session: AsyncSession = Depends(deps.get_session),
-    form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     """OAuth2 compatible token, get an access token for future requests using username and password"""
-
+    print(form_data)
     result = await session.execute(select(User).where(User.email == form_data.username))
     user = result.scalars().first()
 
     if user is None:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(
+            status_code=400, detail="Incorrect email or password")
 
     if not security.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(
+            status_code=400, detail="Incorrect email or password")
 
     return security.generate_access_token_response(str(user.id))
 

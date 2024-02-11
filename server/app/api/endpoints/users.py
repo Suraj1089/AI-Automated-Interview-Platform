@@ -42,7 +42,7 @@ async def reset_current_user_password(
     return current_user
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/signup", response_model=UserResponse)
 async def register_new_user(
     new_user: UserCreateRequest,
     session: AsyncSession = Depends(deps.get_session),

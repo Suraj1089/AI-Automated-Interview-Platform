@@ -60,26 +60,6 @@ const Login = () => {
         setIsSignup((prevState) => !prevState)
     }
 
-    const googleSuccess = async (res) => {
-        const result = jwtDecode(res.credential);
-        const token = res?.credential;
-        dispatch(createProfile({name: result?.name, email: result?.email, userId: result?.jti, phoneNumber: '', businessName: '', contactAddress: '', logo: result?.picture, website: ''}))
-
-        try {
-            dispatch({ type: "AUTH", data: {result, token}})
-
-            window.location.href='/homepage'
-            
-        } catch (error) {
-            console.log(error)
-        }
-    }
-    const googleError =(error) => {
-        console.log(error)
-        console.log("Google Sign In was unsuccessful. Try again later")
-    }
-
-
     if(user) {
       navigate('/homepage')
     }
@@ -143,23 +123,6 @@ return (
               : 
               <button className={styles.submit_button} >{ isSignup ? 'Sign Up' : 'Sign In' }</button>
               }
-            </div>
-
-            <div className={styles.auth_option}>
-              <span>or</span>
-            </div>
-
-            <div> 
-              <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-                <GoogleLogin
-                  onSuccess={googleSuccess}
-                  onError={googleError}
-                  text='continue_with'
-                  useOneTap
-                  auto_select
-                  state_cookie_domain='single_host_origin'
-                />
-              </GoogleOAuthProvider>
             </div>
           </div>
         </form>

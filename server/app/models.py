@@ -1,11 +1,4 @@
 """
-SQL Alchemy models declaration.
-https://docs.sqlalchemy.org/en/14/orm/declarative_styles.html#example-two-dataclasses-with-declarative-table
-Dataclass style for powerful autocompletion support.
-
-https://alembic.sqlalchemy.org/en/latest/tutorial.html
-Note, it is used by alembic migrations logic, see `alembic/env.py`
-
 Alembic shortcuts:
 # create migration
 alembic revision --autogenerate -m "migration_name"
@@ -30,7 +23,14 @@ class User(Base):
     id: Mapped[str] = mapped_column(
         UUID(as_uuid=False), primary_key=True, default=lambda _: str(uuid.uuid4())
     )
+    first_name: Mapped[str] = mapped_column(
+        String(50), nullable=True
+    )
+    last_name: Mapped[str] = mapped_column(
+        String(50), nullable=True
+    )
     email: Mapped[str] = mapped_column(
         String(254), nullable=False, unique=True, index=True
     )
     hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=True, default='candidate')
