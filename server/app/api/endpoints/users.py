@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.api import deps
 from app.core.security import get_password_hash
+from app.core.session import get_db
 from app.models import User
 from app.schemas.requests import UserCreateRequest, UserUpdatePasswordRequest
 from app.schemas.responses import UserResponse
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -22,39 +22,44 @@ async def read_current_user(
 @router.delete("/me", status_code=204)
 async def delete_current_user(
     current_user: User = Depends(deps.get_current_user),
-    session: AsyncSession = Depends(deps.get_session),
+    db: Session = Depends(get_db)
 ):
     """Delete current user"""
-    await session.execute(delete(User).where(User.id == current_user.id))
-    await session.commit()
+    db.query(User).delete(User.id == current_user.id)
+    return {'message': 'User deleted successfully'}
 
 
 @router.post("/reset-password", response_model=UserResponse)
 async def reset_current_user_password(
     user_update_password: UserUpdatePasswordRequest,
-    session: AsyncSession = Depends(deps.get_session),
+    db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
     """Update current user password"""
-    current_user.hashed_password = get_password_hash(user_update_password.password)
-    session.add(current_user)
-    await session.commit()
-    return current_user
+    current_user.hashed_password = get_password_hash(
+        user_update_password.password)
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    
+    return {"id": current_user.id, "email": current_user.email}
 
 
 @router.post("/signup", response_model=UserResponse)
 async def register_new_user(
     new_user: UserCreateRequest,
-    session: AsyncSession = Depends(deps.get_session),
+    db: Session = Depends(get_db),
 ):
     """Create new user"""
-    result = await session.execute(select(User).where(User.email == new_user.email))
-    if result.scalars().first() is not None:
-        raise HTTPException(status_code=400, detail="Cannot use this email address")
+    result = db.query(User).filter(User.email == new_user.email)
+    if result.first() is not None:
+        raise HTTPException(
+            status_code=400, detail="User already exist")
     user = User(
         email=new_user.email,
         hashed_password=get_password_hash(new_user.password),
     )
-    session.add(user)
-    await session.commit()
-    return user
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"id": user.id, "email": user.email}

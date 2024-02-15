@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
-
+from datetime import datetime
+from typing import Any
 
 class BaseResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -18,3 +19,18 @@ class AccessTokenResponse(BaseResponse):
 class UserResponse(BaseResponse):
     id: str
     email: EmailStr
+
+
+class InterviewResponse(BaseResponse):
+    title: str 
+    description: str 
+    start_datetime: datetime | str
+    end_datetime: datetime | str 
+    candidate: Any 
+    hr: Any 
+    status: str
+
+
+
+class InterviewListResponse(BaseResponse):
+    pass 

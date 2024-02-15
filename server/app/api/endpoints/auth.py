@@ -1,8 +1,10 @@
 import time
+from typing import Annotated
 
 import jwt
 from app.api import deps
 from app.core import config, security
+from app.core.session import get_db
 from app.models import User
 from app.schemas.requests import RefreshTokenRequest, UserLoginRequest
 from app.schemas.responses import AccessTokenResponse
@@ -11,19 +13,20 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 
 @router.post("/signin", response_model=AccessTokenResponse)
 async def login_access_token(
-    form_data: UserLoginRequest,
-    session: AsyncSession = Depends(deps.get_session),
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Session = Depends(get_db),
 ):
     """OAuth2 compatible token, get an access token for future requests using username and password"""
     print(form_data)
-    result = await session.execute(select(User).where(User.email == form_data.username))
-    user = result.scalars().first()
+    result = db.query(User).filter(User.email == form_data.username)
+    user = result.first()
 
     if user is None:
         raise HTTPException(
@@ -39,7 +42,7 @@ async def login_access_token(
 @router.post("/refresh-token", response_model=AccessTokenResponse)
 async def refresh_token(
     input: RefreshTokenRequest,
-    session: AsyncSession = Depends(deps.get_session),
+    db: Session = Depends(get_db),
 ):
     """OAuth2 compatible token, get an access token for future requests using refresh token"""
     try:
@@ -69,8 +72,8 @@ async def refresh_token(
             detail="Could not validate credentials, token expired or not yet valid",
         )
 
-    result = await session.execute(select(User).where(User.id == token_data.sub))
-    user = result.scalars().first()
+    result = db.query(User).filter(User.id == token_data.sub)
+    user = result.first()
 
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")

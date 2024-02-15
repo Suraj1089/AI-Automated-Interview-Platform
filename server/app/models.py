@@ -1,36 +1,34 @@
-"""
-Alembic shortcuts:
-# create migration
-alembic revision --autogenerate -m "migration_name"
-
-# apply all migrations
-alembic upgrade head
-"""
 import uuid
+from datetime import datetime
 
-from sqlalchemy import String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
-
-class Base(DeclarativeBase):
-    pass
+from app.core.session import Base
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
-    __tablename__ = "user_model"
+    __tablename__ = "user"
 
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda _: str(uuid.uuid4())
-    )
-    first_name: Mapped[str] = mapped_column(
-        String(50), nullable=True
-    )
-    last_name: Mapped[str] = mapped_column(
-        String(50), nullable=True
-    )
-    email: Mapped[str] = mapped_column(
-        String(254), nullable=False, unique=True, index=True
-    )
-    hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
-    role: Mapped[str] = mapped_column(String(20), nullable=True, default='candidate')
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    first_name = Column(String(50), nullable=True)
+    last_name = Column(String(50), nullable=True)
+    email = Column(String(254), nullable=False, unique=True, index=True)
+    hashed_password = Column(String(128), nullable=False)
+    role = Column(String(20), nullable=True, default='candidate')
+
+
+class Interview(Base):
+    __tablename__ = "interview"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(50), nullable=True)
+    description = Column(String(50), nullable=True)
+    status = Column(String(25), nullable=False, default='Scheduled')
+    start_datetime = Column(DateTime, nullable=False)
+    end_datetime = Column(DateTime, nullable=False)
+    candidate_id = Column(String, ForeignKey('user.id'))
+    hr_id = Column(String, ForeignKey('user.id'))
+
+    # Relationships
+    candidate = relationship('User', foreign_keys=[candidate_id])
+    hr_user = relationship('User', foreign_keys=[hr_id])
