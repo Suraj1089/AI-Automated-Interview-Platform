@@ -1,34 +1,57 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import List
 
-from app.core.session import Base
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+Base = declarative_base()
 
 
 class User(Base):
     __tablename__ = "user"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    first_name = Column(String(50), nullable=True)
-    last_name = Column(String(50), nullable=True)
-    email = Column(String(254), nullable=False, unique=True, index=True)
-    hashed_password = Column(String(128), nullable=False)
-    role = Column(String(20), nullable=True, default='candidate')
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=True)
+    last_name: Mapped[str] = mapped_column(String, nullable=True)
+    email: Mapped[str] = mapped_column(
+        String, nullable=False, unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[str] = mapped_column(
+        String, nullable=False, default='candidate')
+    profile: Mapped["Profile"] = relationship(back_populates="user")
+
+
+class Profile(Base):
+    __tablename__ = "profile"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+
+    user: Mapped["User"] = relationship(back_populates="profile")
+    # interviews: Mapped[List["Interview"]] = relationship("Interview")
 
 
 class Interview(Base):
     __tablename__ = "interview"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    title = Column(String(50), nullable=True)
-    description = Column(String(50), nullable=True)
-    status = Column(String(25), nullable=False, default='Scheduled')
-    start_datetime = Column(DateTime, nullable=False)
-    end_datetime = Column(DateTime, nullable=False)
-    candidate_id = Column(String, ForeignKey('user.id'))
-    hr_id = Column(String, ForeignKey('user.id'))
 
-    # Relationships
-    candidate = relationship('User', foreign_keys=[candidate_id])
-    hr_user = relationship('User', foreign_keys=[hr_id])
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(50), nullable=True)
+    description: Mapped[str] = mapped_column(
+        String(255), nullable=True)  # Increased size
+    status: Mapped[str] = mapped_column(
+        String, nullable=False, default='scheduled')
+    start_datetime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    end_datetime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    candidate_id: Mapped[int] = mapped_column(Integer,
+                                              ForeignKey("profile.id"), nullable=False)
+    hr_id: Mapped[int] = mapped_column(Integer,
+                                       ForeignKey("profile.id"), nullable=False)
+
+    candidate: Mapped["Profile"] = relationship(
+        "Profile", foreign_keys=[candidate_id, ])
+    hr: Mapped["Profile"] = relationship("Profile", foreign_keys=[hr_id, ])

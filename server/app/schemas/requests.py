@@ -37,3 +37,16 @@ class InterviewCreateRequest(BaseRequest):
     hr: Any
     status: Literal['Scheduled', 'Cancelled', 'Completed',
                     'Live', 'Postponed', 'Rescheduled'] = 'Scheduled'
+
+
+class InterviewUpdateRequeset(BaseRequest):
+    title: str
+    description: str
+    start_datetime: datetime
+    end_datetime: datetime
+    status: Literal['Scheduled', 'Cancelled', 'Completed',
+                    'Live', 'Postponed', 'Rescheduled'] = 'Scheduled'
+
+
+class ProfileUpdateRequest(BaseRequest):
+    pass

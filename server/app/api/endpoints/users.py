@@ -1,7 +1,7 @@
 from app.api import deps
 from app.core.security import get_password_hash
 from app.core.session import get_db
-from app.models import User
+from app.models import Profile, User
 from app.schemas.requests import UserCreateRequest, UserUpdatePasswordRequest
 from app.schemas.responses import UserResponse
 from fastapi import APIRouter, Depends, HTTPException
@@ -41,7 +41,7 @@ async def reset_current_user_password(
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
-    
+
     return {"id": current_user.id, "email": current_user.email}
 
 
@@ -62,4 +62,19 @@ async def register_new_user(
     db.add(user)
     db.commit()
     db.refresh(user)
-    return {"id": user.id, "email": user.email}
+    print(user)
+    # create associate profile
+    profile = Profile(user=user)
+    db.add(profile)
+    db.commit()
+    db.refresh(profile)
+    return {"id": user.id, "email": user.email, "role": user.role}
+
+
+@router.post('/profile')
+def get_profile(current_user: User = Depends(deps.get_current_user), db: Session = Depends(get_db)):
+    return {
+        "user": current_user,
+        "profile": current_user.profile,
+        "interviews": current_user.profile
+    }
