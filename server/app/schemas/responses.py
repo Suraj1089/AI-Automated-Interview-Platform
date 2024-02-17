@@ -24,10 +24,11 @@ class UserResponse(BaseResponse):
     role: str 
 
 class InterviewResponse(BaseResponse):
+    id: int
     title: str
     description: str
-    start_datetime: datetime | str
-    end_datetime: datetime | str
+    start_datetime: datetime
+    end_datetime: datetime
     candidate: Any
     hr: Any
     status: str

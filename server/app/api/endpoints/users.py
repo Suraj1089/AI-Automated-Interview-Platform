@@ -1,7 +1,7 @@
 from app.api import deps
 from app.core.security import get_password_hash
 from app.core.session import get_db
-from app.models import Profile, User
+from app.models import Interview, Profile, User
 from app.schemas.requests import UserCreateRequest, UserUpdatePasswordRequest
 from app.schemas.responses import UserResponse
 from fastapi import APIRouter, Depends, HTTPException
@@ -69,12 +69,3 @@ async def register_new_user(
     db.commit()
     db.refresh(profile)
     return {"id": user.id, "email": user.email, "role": user.role}
-
-
-@router.post('/profile')
-def get_profile(current_user: User = Depends(deps.get_current_user), db: Session = Depends(get_db)):
-    return {
-        "user": current_user,
-        "profile": current_user.profile,
-        "interviews": current_user.profile
-    }

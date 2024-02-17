@@ -1,12 +1,11 @@
-from typing import Any
+from typing import Any, List
 
 from app.api import deps
 from app.core.session import get_db
-from app.models import Interview, User
-from app.schemas.requests import InterviewCreateRequest, InterviewUpdateRequeset
+from app.models import Interview, Profile, User
+from app.schemas.requests import InterviewCreateRequest, InterviewUpdateRequest
 from app.schemas.responses import InterviewResponse
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -18,7 +17,7 @@ async def create_interview(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
-    user_profile = current_user.profile
+    user_profile: Profile = current_user.profile
     interview = Interview(
         title=new_interview.title,
         description=new_interview.description,
@@ -34,7 +33,7 @@ async def create_interview(
     return interview
 
 
-@router.get("/")
+@router.get("/", response_model=List[InterviewResponse])
 async def get_interviews(
     candidate_id: int = None,
     hr_id: int = None,
@@ -50,10 +49,10 @@ async def get_interviews(
     return interviews
 
 
-@router.patch("/{interview_id}")
+@router.patch("/{interview_id}", response_model=InterviewResponse)
 async def update_interview(
     interview_id: int,
-    interview_update: InterviewUpdateRequeset,
+    interview_update: InterviewUpdateRequest,
     db: Session = Depends(get_db),
 ):
     interview = db.query(Interview).filter(
@@ -61,7 +60,7 @@ async def update_interview(
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
 
-    for attr, value in interview_update.model_dump().items():
+    for attr, value in interview_update.dict(exclude_unset=True).items():
         setattr(interview, attr, value)
     db.commit()
     db.refresh(interview)

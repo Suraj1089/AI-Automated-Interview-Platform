@@ -39,7 +39,7 @@ class InterviewCreateRequest(BaseRequest):
                     'Live', 'Postponed', 'Rescheduled'] = 'Scheduled'
 
 
-class InterviewUpdateRequeset(BaseRequest):
+class InterviewUpdateRequest(BaseRequest):
     title: str
     description: str
     start_datetime: datetime
