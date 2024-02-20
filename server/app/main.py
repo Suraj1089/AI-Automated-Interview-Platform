@@ -6,7 +6,6 @@ from app.core.session import engine
 from app.models import Base
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,7 +27,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Guards against HTTP Host Header attacks
-app.add_middleware(TrustedHostMiddleware,
-                   allowed_hosts=config.settings.ALLOWED_HOSTS)
