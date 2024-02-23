@@ -1,23 +1,16 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/img-redundant-alt */
 /* eslint-disable no-unused-vars */
+import CircularProgress from '@material-ui/core/CircularProgress'
 import React, { useState } from 'react'
-import Field from './Field'
-import useStyles from './styles'
-import styles from './Login.module.css'
-import {GoogleLogin, GoogleOAuthProvider} from '@react-oauth/google'
-import jwtDecode from 'jwt-decode'
-import {useDispatch} from 'react-redux'
-import { useNavigate, Link } from 'react-router-dom'
-import { signup, signin } from '../../actions/auth'
-import { Avatar, Button, Paper, Grid, Typography, Container } from '@material-ui/core'
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined'
-import { createProfile } from '../../actions/profile'
+import { useDispatch } from 'react-redux'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSnackbar } from 'react-simple-snackbar'
-import CircularProgress from '@material-ui/core/CircularProgress';
-import { useLocation } from 'react-router-dom';
+import { signin, signup } from '../../actions/auth'
+import styles from './Login.module.css'
+import useStyles from './styles'
 
-import myImage from './login_img.jpg';
+import myImage from './login_img.jpg'
 
 const initialState ={ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', profilePicture: '', bio: ''}
 
@@ -47,10 +40,11 @@ const Login = () => {
     
     const handleSubmit =(e) => {
         e.preventDefault()
+        setLoading(true) // Set loading state to true before dispatching the action
         if(isSignup) {
-            dispatch(signup(formData, openSnackbar, setLoading))
+          dispatch(signup(formData, openSnackbar, () => setLoading(false))) 
         } else {
-            dispatch(signin(formData, openSnackbar, setLoading))
+          dispatch(signin(formData, openSnackbar, () => setLoading(false)))
         }
         setLoading(true)
     }

@@ -1,23 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import * as api from '../api/index';
-import { AUTH, CREATE_PROFILE } from './constants';
+import { AUTH } from './constants';
 
 
 export const signin = (formData, openSnackbar, setLoading) => async (dispatch) => {
 
     try {
         //login the user
-        const loginData = { "username": formData.email, "password": formData.password };
-        console.log(loginData)
-        const { data } = await api.signIn(loginData)
+        const loginData = new URLSearchParams();
+        loginData.append('username', formData.email);
+        loginData.append('password', formData.password);
+        const { data } = await api.signIn(loginData.toString())
         dispatch({ type: AUTH, data })
-        // setLoading(false)
         openSnackbar("Signin successfull")
-        // history.push('/dashboard')
         window.location.href = "/homepage"
 
     } catch (error) {
-        // console.log(error?.response?.data?.message)
         openSnackbar(error?.response?.data?.message)
         setLoading(false)
     }
@@ -26,18 +24,13 @@ export const signin = (formData, openSnackbar, setLoading) => async (dispatch) =
 export const signup = (formData, openSnackbar, setLoading) => async (dispatch) => {
 
     try {
-        //Sign up the user
         const { data } = await api.signUp(formData)
         dispatch({ type: AUTH, data })
-        const { info } = await api.createProfile({ name: data?.result?.name, email: data?.result?.email, userId: data?.result?._id, role: data?.result?.role, phoneNumber: '', businessName: '', contactAddress: '', logo: '', website: '' });
-        dispatch({ type: CREATE_PROFILE, payload: info });
+        openSnackbar("Sign up successfull!")
         window.location.href = "/homepage"
-        // history.push('/dashboard')
-        openSnackbar("Sign up successfull")
 
     } catch (error) {
-        console.log(error)
-        openSnackbar(error?.response?.data?.message)
+        openSnackbar(error?.response?.data?.detail)
         setLoading(false)
     }
 }
