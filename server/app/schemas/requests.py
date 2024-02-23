@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 class BaseRequest(BaseModel):
@@ -20,6 +21,7 @@ class UserUpdatePasswordRequest(BaseRequest):
 class UserCreateRequest(BaseRequest):
     email: EmailStr
     password: str
+    role: Optional[str] = 'candidate'
 
 
 class UserLoginRequest(BaseRequest):
